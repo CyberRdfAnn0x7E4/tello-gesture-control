@@ -62,13 +62,15 @@ def main():
     KEYBOARD_CONTROL = args.is_keyboard
     WRITE_CONTROL = False
     in_flight = False
-
+    
     # Camera preparation
     tello = Tello()
     tello.connect()
     tello.streamon()
 
     cap = tello.get_frame_read()
+    cap_webcam = cv.VideoCapture(0)
+    
 
     # Init Tello Controllers
     gesture_controller = TelloGestureController(tello)
@@ -135,7 +137,8 @@ def main():
                 number = key - 48
 
         # Camera capture
-        image = cap.frame
+        #image = cap.frame
+        b, image = cap_webcam.read()
 
         debug_image, gesture_id = gesture_detector.recognize(image, number, mode)
         gesture_buffer.add_gesture(gesture_id)
@@ -146,9 +149,18 @@ def main():
 
         debug_image = gesture_detector.draw_info(debug_image, fps, mode, number)
 
+        battery_str_postion = (5, 100)  # dustin webcam
+        #battery_str_postion = (5, 720 - 5) # drone camera
+        
         # Battery status and image rendering
-        cv.putText(debug_image, "Battery: {}".format(battery_status), (5, 720 - 5),
+        cv.putText(debug_image, "Battery: {}".format(battery_status), battery_str_postion,
                    cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+        modeStr = "gestures"
+        if KEYBOARD_CONTROL:
+            modeStr = "keyboard"
+
+        cv.putText(debug_image, modeStr + " controll", (5,150), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         cv.imshow('Tello Gesture Recognition', debug_image)
 
     tello.land()
