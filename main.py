@@ -65,10 +65,15 @@ def main():
     
     # Camera preparation
     tello = Tello()
+    #print(dir(tello))
+
     tello.connect()
+    tello.set_speed(100)
+    print("\n\n"+ tello.get_speed() + "\n\n")
+
     tello.streamon()
 
-    cap = tello.get_frame_read()
+    cap_drone = tello.get_frame_read()
     cap_webcam = cv.VideoCapture(0)
     
 
@@ -137,31 +142,37 @@ def main():
                 number = key - 48
 
         # Camera capture
-        #image = cap.frame
-        b, image = cap_webcam.read()
+        image_drone = cap_drone.frame
+        image = cap_webcam.read()[1]
 
-        debug_image, gesture_id = gesture_detector.recognize(image, number, mode)
-        gesture_buffer.add_gesture(gesture_id)
+        try:
+            debug_image, gesture_id = gesture_detector.recognize(image, number, mode)
+            gesture_buffer.add_gesture(gesture_id)
 
-        # Start control thread
-        threading.Thread(target=tello_control, args=(key, keyboard_controller, gesture_controller,)).start()
-        threading.Thread(target=tello_battery, args=(tello,)).start()
+            # Start control thread
+            threading.Thread(target=tello_control, args=(key, keyboard_controller, gesture_controller,)).start()
+            threading.Thread(target=tello_battery, args=(tello,)).start()
 
-        debug_image = gesture_detector.draw_info(debug_image, fps, mode, number)
+            debug_image = gesture_detector.draw_info(debug_image, fps, mode, number)
 
-        battery_str_postion = (5, 100)  # dustin webcam
-        #battery_str_postion = (5, 720 - 5) # drone camera
-        
-        # Battery status and image rendering
-        cv.putText(debug_image, "Battery: {}".format(battery_status), battery_str_postion,
-                   cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            battery_str_postion = (5, 100)  # dustin webcam
+            #battery_str_postion = (5, 720 - 5) # drone camera
 
-        modeStr = "gestures"
-        if KEYBOARD_CONTROL:
-            modeStr = "keyboard"
+            # Battery status and image rendering
+            cv.putText(debug_image, "Battery: {}".format(battery_status), battery_str_postion,
+                       cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
-        cv.putText(debug_image, modeStr + " controll", (5,150), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        cv.imshow('Tello Gesture Recognition', debug_image)
+            modeStr = "gestures"
+            if KEYBOARD_CONTROL:
+                modeStr = "keyboard"
+
+            cv.putText(debug_image, modeStr + " control", (5, 150), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+            cv.imshow('Webcam Gesture Recognition', debug_image)
+            cv.imshow('Tello drone camera', image_drone)
+        except:
+            print("exception")
+
 
     tello.land()
     tello.end()
