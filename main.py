@@ -12,6 +12,12 @@ from gestures import *
 
 import threading
 
+speed = {
+    "slow": 10,
+    "medium": 40,
+    "fast": 100
+}
+
 
 def get_args():
     print('## Reading configuration ##')
@@ -67,8 +73,10 @@ def main():
     tello = Tello()
     #print(dir(tello))
 
+
+
     tello.connect()
-    tello.set_speed(100)
+    tello.set_speed(speed["slow"])
     print("\n\n"+ tello.get_speed() + "\n\n")
 
     tello.streamon()
