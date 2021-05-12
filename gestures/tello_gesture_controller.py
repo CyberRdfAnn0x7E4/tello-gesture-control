@@ -41,6 +41,9 @@ class TelloGestureController:
             elif gesture_id == 7: # RIGHT
                 self.left_right_velocity = 20
 
+            elif gesture_id == 8:
+                print("Rotate right!")
+
             elif gesture_id == -1:
                 self.forw_back_velocity = self.up_down_velocity = \
                     self.left_right_velocity = self.yaw_velocity = 0
